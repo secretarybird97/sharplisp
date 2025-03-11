@@ -1,4 +1,4 @@
-namespace SharpLisp.Compiler;
+namespace SharpLisp.Common;
 
 public enum TokenKind : byte
 {

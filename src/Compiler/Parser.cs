@@ -1,4 +1,5 @@
-using System.Runtime.InteropServices;
+using System.Diagnostics;
+using SharpLisp.Common;
 
 namespace SharpLisp.Compiler;
 
@@ -16,45 +17,59 @@ public class Parser
     private void Consume(TokenKind expected)
     {
         if (_currentToken.Kind == expected)
+        {
             _currentToken = _lexer.NextToken();
+        }
         else
+        {
             throw new Exception($"Expected {expected}, got {_currentToken.Kind}");
+        }
     }
 
-    public IExpr Parse()
+    public Expr Parse()
     {
-        if (_currentToken.Kind == TokenKind.LParen)
+        if (_currentToken.Kind == TokenKind.EOF)
         {
-            Consume(TokenKind.LParen);
-            return ParseExpression();
+            throw new Exception("Can't parse empty file");
         }
-        if (_currentToken.Kind == TokenKind.Number)
+
+        List<Expr> exprs = [];
+        while (_currentToken.Kind != TokenKind.EOF)
         {
-            var expr = new IntLiteral(int.Parse(_currentToken.Value));
-            Consume(TokenKind.Number);
-            return expr;
+            exprs.Add(ParseExpression());
         }
-        if (_currentToken.Kind == TokenKind.Ident)
-        {
-            var expr = new IdentifierExpr(_currentToken.Value);
-            Consume(TokenKind.Ident);
-            return expr;
-        }
-        throw new Exception("Unexpected token: " + _currentToken.Kind);
+
+        Debug.Assert(exprs.Count >= 1);
+        return exprs.Count > 1 ? new BlockExpr(exprs) : exprs[0];
     }
 
-    private IExpr ParseExpression()
+    private Expr ParseExpression()
     {
-        return _currentToken.Kind switch
+        switch (_currentToken.Kind)
         {
-            TokenKind.Let => ParseLet(),
-            TokenKind.If => ParseIf(),
-            TokenKind.While => ParseWhile(),
-            TokenKind.Ident => ParseCall(),
-            TokenKind.Fn => ParseFunctionDef(),
-            TokenKind.Operator => ParseBinary(),
-            _ => throw new Exception("Unknown expression type: " + _currentToken.Kind),
-        };
+            case TokenKind.LParen:
+                Consume(TokenKind.LParen);
+                return _currentToken.Kind switch
+                {
+                    TokenKind.Let => ParseLet(),
+                    TokenKind.If => ParseIf(),
+                    TokenKind.While => ParseWhile(),
+                    TokenKind.Ident => ParseCall(),
+                    TokenKind.Fn => ParseFunctionDef(),
+                    TokenKind.Operator => ParseBinary(),
+                    _ => throw new Exception("Unknown expression type: " + _currentToken.Kind),
+                };
+            case TokenKind.Number:
+                var intExpr = new IntLiteral(int.Parse(_currentToken.Value));
+                Consume(TokenKind.Number);
+                return intExpr;
+            case TokenKind.Ident:
+                var identExpr = new IdentifierExpr(_currentToken.Value);
+                Consume(TokenKind.Ident);
+                return identExpr;
+            default:
+                throw new Exception("Unexpected token: " + _currentToken.Kind);
+        }
     }
 
     private FunctionDef ParseFunctionDef()
@@ -71,7 +86,8 @@ public class Parser
             Consume(TokenKind.Ident);
         }
         Consume(TokenKind.RParen);
-        var body = Parse();
+        var body = ParseExpression();
+        Consume(TokenKind.RParen);
 
         return new FunctionDef(name, param, body);
     }
@@ -81,17 +97,17 @@ public class Parser
         Consume(TokenKind.Let);
         Consume(TokenKind.LParen);
 
-        List<(string, IExpr)> bindings = [];
+        List<(string, Expr)> bindings = [];
         while (_currentToken.Kind == TokenKind.Ident)
         {
             string name = _currentToken.Value;
             Consume(TokenKind.Ident);
-            IExpr value = Parse();
+            Expr value = ParseExpression();
             bindings.Add((name, value));
         }
 
         Consume(TokenKind.RParen);
-        IExpr body = Parse();
+        Expr body = ParseExpression();
         Consume(TokenKind.RParen);
         return new LetExpr(bindings, body);
     }
@@ -99,9 +115,9 @@ public class Parser
     private IfExpr ParseIf()
     {
         Consume(TokenKind.If);
-        IExpr condition = Parse();
-        IExpr thenBranch = Parse();
-        IExpr elseBranch = Parse();
+        Expr condition = ParseExpression();
+        Expr thenBranch = ParseExpression();
+        Expr elseBranch = ParseExpression();
         Consume(TokenKind.RParen);
         return new IfExpr(condition, thenBranch, elseBranch);
     }
@@ -109,8 +125,8 @@ public class Parser
     private WhileExpr ParseWhile()
     {
         Consume(TokenKind.While);
-        IExpr condition = Parse();
-        IExpr body = Parse();
+        Expr condition = ParseExpression();
+        Expr body = ParseExpression();
         Consume(TokenKind.RParen);
         return new WhileExpr(condition, body);
     }
@@ -120,10 +136,10 @@ public class Parser
         var callee = new IdentifierExpr(_currentToken.Value);
         Consume(TokenKind.Ident);
 
-        List<IExpr> args = [];
+        List<Expr> args = [];
         while (_currentToken.Kind != TokenKind.RParen)
         {
-            args.Add(Parse());
+            args.Add(ParseExpression());
         }
 
         Consume(TokenKind.RParen);
@@ -134,8 +150,8 @@ public class Parser
     {
         string op = _currentToken.Value;
         Consume(TokenKind.Operator);
-        IExpr left = Parse();
-        IExpr right = Parse();
+        Expr left = ParseExpression();
+        Expr right = ParseExpression();
         Consume(TokenKind.RParen);
         return new BinaryExpr(op, left, right);
     }

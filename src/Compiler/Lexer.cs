@@ -1,3 +1,6 @@
+using System.Text;
+using SharpLisp.Common;
+
 namespace SharpLisp.Compiler;
 
 public class Lexer(string input)
@@ -74,5 +77,20 @@ public class Lexer(string input)
             _position += 1;
         }
         return _input[start.._position];
+    }
+
+    public string TokensToString()
+    {
+        var sb = new StringBuilder();
+
+        var token = NextToken();
+        while (token.Kind != TokenKind.EOF)
+        {
+            sb.AppendLine(token.ToString());
+            token = NextToken();
+        }
+
+        _position = 0;
+        return sb.ToString();
     }
 }
