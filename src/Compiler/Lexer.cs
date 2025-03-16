@@ -1,3 +1,6 @@
+using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using SharpLisp.Common;
 
@@ -8,7 +11,7 @@ public sealed class Lexer(string input)
     private readonly string _input = input;
     private int _position = 0;
 
-    private static readonly Dictionary<string, TokenKind> Keywords = new()
+    public static readonly ReadOnlyDictionary<string, TokenKind> Keywords = new(new Dictionary<string, TokenKind>
     {
         {"fn", TokenKind.Fn},
 
@@ -18,9 +21,9 @@ public sealed class Lexer(string input)
         {"async", TokenKind.Async},
         {"await", TokenKind.Await},
         {"class", TokenKind.Class},
-    };
+    });
 
-    private static readonly Dictionary<char, TokenKind> Symbols = new()
+    public static readonly ReadOnlyDictionary<char, TokenKind> Symbols = new(new Dictionary<char, TokenKind>
     {
         {'(', TokenKind.LParen},
         {')', TokenKind.RParen},
@@ -35,7 +38,7 @@ public sealed class Lexer(string input)
         {'{', TokenKind.LBracket},
         {'}', TokenKind.RBracket},
         {'\\', TokenKind.Backslash}
-    };
+    });
 
     public Token NextToken()
     {
@@ -44,7 +47,7 @@ public sealed class Lexer(string input)
             _position += 1;
         }
 
-        if (_position >= _input.Length) return new Token(TokenKind.EOF, "\0");
+        if (_position >= _input.Length) return Token.EOF;
 
         char current = _input[_position];
 
@@ -94,5 +97,18 @@ public sealed class Lexer(string input)
 
         _position = prevPosition;
         return sb.ToString();
+    }
+
+    public static IEnumerable<Token> Tokenize(string input)
+    {
+        var lexer = new Lexer(input);
+
+        Token token;
+        while ((token = lexer.NextToken()) != Token.EOF)
+        {
+            yield return token;
+        }
+
+        yield return token;
     }
 }
