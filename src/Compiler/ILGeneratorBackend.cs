@@ -1,6 +1,3 @@
-namespace SharpLisp.Compiler;
-
-using System;
 using System.Collections.Immutable;
 using System.Reflection;
 using System.Reflection.Emit;
@@ -8,16 +5,17 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using SharpLisp.Common;
 
+namespace SharpLisp.Compiler;
+
 public static class ILGeneratorBackend
 {
     private static readonly AssemblyBuilder AssemblyBuilder = AssemblyBuilder
         .DefineDynamicAssembly(new AssemblyName("LispOutput"), AssemblyBuilderAccess.RunAndCollect);
     private static readonly ModuleBuilder ModuleBuilder = AssemblyBuilder
         .DefineDynamicModule("LispOutput" + ".dll");
-
     private static readonly TypeBuilder TypeBuilder = ModuleBuilder.DefineType("Program", TypeAttributes.Public);
-
     private static readonly Dictionary<string, MethodBuilder> FunctionBuilders = [];
+
     public static void Compile(Expr expr)
     {
         var functions = ExtractFunctions(expr);
@@ -42,8 +40,6 @@ public static class ILGeneratorBackend
         // Third pass: Define Main
         _ = DefineMainMethod(expr);
 
-
-        // Create type and invoke Main
         var generatedType = TypeBuilder.CreateType();
         var generatedMain = generatedType.GetMethod("Main");
 
@@ -102,10 +98,8 @@ public static class ILGeneratorBackend
 
         var il = methodBuilder.GetILGenerator();
 
-        // Generate code for the last expression
         GenerateExpressionIL(expr, il, []);
 
-        // Print the result
         var writeLineMethod = typeof(Console).GetMethod("WriteLine", [typeof(object)]);
         if (writeLineMethod is not null)
         {
@@ -147,7 +141,6 @@ public static class ILGeneratorBackend
         var il = methodBuilder.GetILGenerator();
         var locals = new Dictionary<string, LocalBuilder>();
 
-        // Store function arguments in locals
         ref var ptrParams = ref MemoryMarshal.GetReference(function.Parameters.AsSpan());
         for (int i = 0; i < function.Parameters.Length; i++)
         {
@@ -160,7 +153,6 @@ public static class ILGeneratorBackend
             locals[paramName] = localVar;
         }
 
-        // Generate the function body
         GenerateExpressionIL(function.Body, il, locals);
         il.Emit(OpCodes.Ret);
     }
