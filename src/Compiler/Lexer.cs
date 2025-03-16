@@ -82,7 +82,9 @@ public sealed class Lexer(string input)
     public string TokensToString()
     {
         var sb = new StringBuilder();
+        int prevPosition = _position;
 
+        _position = 0;
         var token = NextToken();
         while (token.Kind != TokenKind.EOF)
         {
@@ -90,7 +92,7 @@ public sealed class Lexer(string input)
             token = NextToken();
         }
 
-        _position = 0;
+        _position = prevPosition;
         return sb.ToString();
     }
 }
