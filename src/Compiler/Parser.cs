@@ -1,9 +1,10 @@
+using System.Collections.Immutable;
 using System.Diagnostics;
 using SharpLisp.Common;
 
 namespace SharpLisp.Compiler;
 
-public class Parser
+public sealed class Parser
 {
     private readonly Lexer _lexer;
     private Token _currentToken;
@@ -33,14 +34,14 @@ public class Parser
             throw new Exception("Can't parse empty file");
         }
 
-        List<Expr> exprs = [];
+        var exprs = ImmutableArray.CreateBuilder<Expr>();
         while (_currentToken.Kind != TokenKind.EOF)
         {
             exprs.Add(ParseExpression());
         }
 
-        Debug.Assert(exprs.Count >= 1);
-        return exprs.Count > 1 ? new BlockExpr(exprs) : exprs[0];
+        Debug.Assert(exprs.Count > 0);
+        return exprs.Count > 1 ? new BlockExpr(exprs.DrainToImmutable()) : exprs[0];
     }
 
     private Expr ParseExpression()
@@ -79,7 +80,7 @@ public class Parser
         Consume(TokenKind.Ident);
         Consume(TokenKind.LParen);
 
-        List<string> param = [];
+        var param = ImmutableArray.CreateBuilder<string>();
         while (_currentToken.Kind == TokenKind.Ident)
         {
             param.Add(_currentToken.Value);
@@ -89,7 +90,7 @@ public class Parser
         var body = ParseExpression();
         Consume(TokenKind.RParen);
 
-        return new FunctionDef(name, param, body);
+        return new FunctionDef(name, param.DrainToImmutable(), body);
     }
 
     private LetExpr ParseLet()
@@ -97,7 +98,7 @@ public class Parser
         Consume(TokenKind.Let);
         Consume(TokenKind.LParen);
 
-        List<(string, Expr)> bindings = [];
+        var bindings = ImmutableArray.CreateBuilder<(string, Expr)>();
         while (_currentToken.Kind == TokenKind.Ident)
         {
             string name = _currentToken.Value;
@@ -109,7 +110,7 @@ public class Parser
         Consume(TokenKind.RParen);
         Expr body = ParseExpression();
         Consume(TokenKind.RParen);
-        return new LetExpr(bindings, body);
+        return new LetExpr(bindings.DrainToImmutable(), body);
     }
 
     private IfExpr ParseIf()
@@ -136,14 +137,15 @@ public class Parser
         var callee = new IdentifierExpr(_currentToken.Value);
         Consume(TokenKind.Ident);
 
-        List<Expr> args = [];
+        var args = ImmutableArray.CreateBuilder<Expr>();
         while (_currentToken.Kind != TokenKind.RParen)
         {
             args.Add(ParseExpression());
         }
 
         Consume(TokenKind.RParen);
-        return new CallExpr(callee, args);
+
+        return new CallExpr(callee, args.DrainToImmutable());
     }
 
     private BinaryExpr ParseBinary()

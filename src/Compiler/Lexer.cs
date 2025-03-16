@@ -3,7 +3,7 @@ using SharpLisp.Common;
 
 namespace SharpLisp.Compiler;
 
-public class Lexer(string input)
+public sealed class Lexer(string input)
 {
     private readonly string _input = input;
     private int _position = 0;
