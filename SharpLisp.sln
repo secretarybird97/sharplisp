@@ -9,6 +9,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpLisp.Compiler", "src\C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpLisp.Common", "src\Common\SharpLisp.Common.csproj", "{AF075A39-965A-4B9C-9FE1-8ED63AB56256}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{B0C8A990-60D5-41B1-A4B9-69D6CD91EAC8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SharpLisp.Compiler.Tests", "tests\Compiler.Tests\SharpLisp.Compiler.Tests.csproj", "{5A3D58A7-A6FD-4344-9CE9-D283A60FFDE4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,9 +30,14 @@ Global
 		{AF075A39-965A-4B9C-9FE1-8ED63AB56256}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF075A39-965A-4B9C-9FE1-8ED63AB56256}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AF075A39-965A-4B9C-9FE1-8ED63AB56256}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A3D58A7-A6FD-4344-9CE9-D283A60FFDE4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A3D58A7-A6FD-4344-9CE9-D283A60FFDE4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A3D58A7-A6FD-4344-9CE9-D283A60FFDE4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A3D58A7-A6FD-4344-9CE9-D283A60FFDE4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{A52EADD4-6C70-49F2-B94B-C95758C7C328} = {9A9A12DA-7C39-4DE3-8E66-481FCEF0766B}
 		{AF075A39-965A-4B9C-9FE1-8ED63AB56256} = {9A9A12DA-7C39-4DE3-8E66-481FCEF0766B}
+		{5A3D58A7-A6FD-4344-9CE9-D283A60FFDE4} = {B0C8A990-60D5-41B1-A4B9-69D6CD91EAC8}
 	EndGlobalSection
 EndGlobal
