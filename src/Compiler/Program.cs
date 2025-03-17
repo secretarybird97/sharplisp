@@ -23,7 +23,7 @@ class Program
             }
             else if (code is not null)
             {
-                RunCompiler(code);
+                RunCompiler(code, printOut: false);
             }
             // TODO: REPL
         }, fileArg, codeOption);
