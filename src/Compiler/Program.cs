@@ -8,39 +8,56 @@ class Program
 {
     static async Task<int> Main(string[] args)
     {
-        var fileArg = new Argument<FileInfo>(name: "FILE", description: "File to compile.");
+        var fileArg = new Argument<FileInfo?>(name: @"FILE", description: @"File to compile.") { Arity = ArgumentArity.ZeroOrOne };
+        var codeOption = new Option<string?>(name: @"--code", description: @"Pass code directly instead of a file.");
 
-        var rootCommand = new RootCommand("Execute a SharpLisp application.");
+        var rootCommand = new RootCommand(@"Execute a SharpLisp application.");
         rootCommand.AddArgument(fileArg);
+        rootCommand.AddOption(codeOption);
 
-        rootCommand.SetHandler(Run, fileArg);
+        rootCommand.SetHandler(async (file, code) =>
+        {
+            if (file is not null)
+            {
+                RunCompiler(await ReadFile(file));
+            }
+            else if (code is not null)
+            {
+                RunCompiler(code, printOut: false);
+            }
+            // TODO: REPL
+        }, fileArg, codeOption);
 
         return await rootCommand.InvokeAsync(args);
     }
 
-    static async Task Run(FileInfo file)
+    static void RunCompiler(string input, bool printOut = true)
     {
-        Compile(await ReadFile(file));
+        if (printOut)
+        {
+            var st = new Stopwatch();
+            Console.WriteLine("Compiling . . .\n");
+            st.Start();
+            Compile(input);
+            st.Stop();
+            Console.WriteLine($"\nFinished! TimeElapsed: {st.ElapsedMilliseconds} ms");
+        }
+        else
+        {
+            Compile(input);
+        }
     }
 
     static void Compile(string input)
     {
-        var st = new Stopwatch();
-
-        Console.WriteLine("Compiling . . .\n");
-        st.Start();
-
         var lexer = new Lexer(input);
         var parser = new Parser(lexer);
         var ast = parser.Parse();
-        Console.WriteLine(ast);
-
+#if DEBUG
+        Console.WriteLine(ast + "\n");
+#endif
         ILGeneratorBackend.Compile(ast);
-        st.Stop();
-
-        Console.WriteLine($"\nFinished! TimeElapsed: {st.ElapsedMilliseconds} ms");
     }
-
 
     static async Task<string> ReadFile(FileInfo file)
     {

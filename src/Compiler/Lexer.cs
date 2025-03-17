@@ -1,6 +1,4 @@
 using System.Collections.ObjectModel;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using SharpLisp.Common;
 
@@ -13,14 +11,14 @@ public sealed class Lexer(string input)
 
     public static readonly ReadOnlyDictionary<string, TokenKind> Keywords = new(new Dictionary<string, TokenKind>
     {
-        {"fn", TokenKind.Fn},
+        {@"fn", TokenKind.Fn},
 
         // TODO
-        { "let", TokenKind.Let},
-        {"var", TokenKind.Var},
-        {"async", TokenKind.Async},
-        {"await", TokenKind.Await},
-        {"class", TokenKind.Class},
+        {@"let", TokenKind.Let},
+        {@"var", TokenKind.Var},
+        {@"async", TokenKind.Async},
+        {@"await", TokenKind.Await},
+        {@"class", TokenKind.Class},
     });
 
     public static readonly ReadOnlyDictionary<char, TokenKind> Symbols = new(new Dictionary<char, TokenKind>
