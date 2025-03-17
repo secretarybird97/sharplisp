@@ -41,13 +41,13 @@ public sealed record BlockExpr(ImmutableArray<Expr> Expressions) : Expr
 
         ref var ptrExpr = ref MemoryMarshal.GetReference(Expressions.AsSpan());
 
-        sb.AppendLine("BlockExpr {");
+        sb.AppendLine(@"BlockExpr {");
         for (int i = 0; i < Expressions.Length; i += 1)
         {
             var item = Unsafe.Add(ref ptrExpr, i);
-            sb.AppendLine("  " + item.ToString());
+            sb.AppendLine(@"  " + item.ToString());
         }
-        sb.AppendLine("}");
+        sb.Append('}');
 
         return sb.ToString();
     }
